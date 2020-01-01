@@ -9,9 +9,11 @@ var router = express.Router();
 
 var indexRouter = require('./routes/index');
 var playersRouter = require('./routes/players');
+var campaignsRouter = require('./routes/campaigns');
 
 app.use('/', indexRouter);
 app.use('/players', playersRouter);
+app.use('/campaigns', campaignsRouter);
 
 http.listen(3000, function(){
   console.log('listening on *:3000');
