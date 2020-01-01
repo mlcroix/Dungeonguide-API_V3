@@ -66,9 +66,9 @@ router.post('/login', function(req, res) {
 
 router.post('/signup', function(req, res) {
     var post = req.body;
-    var lowerEmail = post.email.toLowerCase();
-    var lowerUsername = post.username.toLowerCase();
-    var query = "SELECT * FROM `player` WHERE email = '" + lowerEmail + "' OR username = '" + lowerUsername + "'";
+    var email = post.email.toLowerCase();
+    var username = post.username.toLowerCase();
+    var query = "SELECT * FROM `player` WHERE email = '" + email + "' OR username = '" + username + "'";
     try {
         db.query(query, function(err, result) {
             if (err) throw new Error(err);
@@ -76,25 +76,29 @@ router.post('/signup', function(req, res) {
                 var player = [
                     post.firstname, 
                     post.lastname, 
-                    lowerEmail, 
-                    lowerUsername, 
+                    email, 
+                    username, 
                     encryption.encrypt(post.password)
                 ];
                 var insertQuery = "INSERT INTO player (firstname, lastname, email, username, password) VALUES (?)";
                 db.query(insertQuery, [player], (err, result) => {
                     if (err) throw err;
+                    console.log("Sign up: User " + username + " successfully signed up");
                     res.json(player);
                 });
             } else {
-                if (result[0].username == lowerUsername) {
+                if (result[0].username == username) {
+                    console.log("Sign up error: User " + username + " already exist");
                     res.status(201);
                     res.json({message: "user with the same name already exists"});
                 }
-                else if (result[0].email == lowerEmail) {
+                else if (result[0].email == email) {
+                    console.log("Sign up error: User email " + email + " already exist");
                     res.status(201);
                     res.json({message: "user with the same email adres already exists"});
                 }
                 else {
+                    console.log("Sign up error: User " + username + " already exist");
                     res.status(201);
                     res.json({message: "user already exists"});
                 }
@@ -107,9 +111,57 @@ router.post('/signup', function(req, res) {
 });
 
 router.post('/validate', function(req, res) {
+    var post = req.body;
+    var email = post.email.toLowerCase();
+    var username = post.username.toLowerCase();
+    var query = "SELECT * FROM `player` WHERE email = '" + email + "' OR username = '" + username + "'";
+    try {
+        db.query(query, function(err, result) {
+            if (err) throw new Error(err);
+            if (result.length == 0) {
+                console.log("Validate: User " + username + " successfully validated");
+                res.status(200);
+                res.json({message: "succes"});
+            } else {
+                if (result[0].username == username) {
+                    console.log("Validate error: User " + username + " already exist");
+                    res.status(201);
+                    res.json({message: "user with the same name already exists"});
+                }
+                else if (result[0].email == email) {
+                    console.log("Validate error: User email " + email + " already exist");
+                    res.status(201);
+                    res.json({message: "user with the same email adres already exists"});
+                }
+                else {
+                    console.log("Validate error: User " + username + " already exist");
+                    res.status(201);
+                    res.json({message: "user already exists"});
+                }
+            }
+        });
+    } catch(err) {
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 router.post('/remove', function(req, res) {
+    var post = req.body;
+    var username = post.username.toLowerCase();
+    var query = "DELETE FROM `player` WHERE username = '" + username + "'";
+    try { 
+        db.query(query, function(err, result) { 
+            if (err) throw new Error(err);
+            console.log("Remove player: Succesfully removed User: " + username);
+            res.status(200);
+            res.json({message: "succes"});
+        });   
+    } catch(err) {
+        console.log("Remove player error: Failed to removed User: " + username);
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 router.post('/update', function(req, res) {
