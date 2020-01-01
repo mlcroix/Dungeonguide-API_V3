@@ -165,6 +165,33 @@ router.post('/remove', function(req, res) {
 });
 
 router.post('/update', function(req, res) {
+    var post = req.body;
+    var email = post.email.toLowerCase();
+    var username = post.username.toLowerCase();
+    var id = post.id;
+    var query = "UPDATE player SET firstname = ?, lastname = ?, email = ?, username = ?, password = ? WHERE id = " + id;
+
+    var player = [
+        post.firstname, 
+        post.lastname, 
+        email, 
+        username, 
+        encryption.encrypt(post.password)
+    ];
+    try {
+        db.query(query, player, function(err, result) {
+            if (err) throw new Error(err);
+            console.log("Update player: Succesfully updated User: " + username + " with ID: " + id);
+            res.status(200);
+            res.json({message: "succes"});
+        });
+    } catch (err) {
+        console.log("Update player error: Failed to update User: " + username + " with ID: " + id);
+        res.status(404);
+        res.json({message: err});
+    }
+    
+
 });
 
 module.exports = router;
