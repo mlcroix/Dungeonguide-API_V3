@@ -7,13 +7,29 @@ var db = require('../db');
 router.get('/', function(req, res, next) {
     db.query("SELECT * FROM player", function (err, result) {
         if (err) throw err;
-        console.log(result);
+        console.log("Get Players");
+        res.status(200);
+        res.json(result);
     });
-
-    res.json("hier heb je een lijst van players (die er nog niet zijn)");
 });
 
 router.get('/username/:username', function(req, res) {
+    var username = req.params.username.toLowerCase();
+
+    db.query("SELECT * FROM player WHERE username = '" + username + "'", function (err, result) {
+        if (err) throw err;
+
+        if (result.length == 1) {
+            console.log("Get username: Found " + req.params.username.toLowerCase());
+            res.status(200);
+            res.json(result);
+        } else {
+            console.log("Get username: Not Found " + req.params.username.toLowerCase());
+            res.status(201);
+            res.json({message: "Not Found"});
+        }
+        
+    });
 });
 
 router.post('/login', function(req, res) {
