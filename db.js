@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var dotEnv = require('dotenv').config();
+var util = require('util')
 
 var pool = mysql.createPool({
     host: process.env.HostName,
@@ -23,5 +24,7 @@ pool.getConnection((err, connection) => {
     if (connection) connection.release()
     return
 })
+
+pool.query = util.promisify(pool.query)
 
 module.exports = pool

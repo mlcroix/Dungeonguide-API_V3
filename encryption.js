@@ -1,20 +1,23 @@
 var dotEnv = require('dotenv').config();
-
-// Nodejs encryption with CTR
 var crypto = require('crypto'),
     algorithm = 'aes-256-ctr',
-    password = process.env.encryptpasssword;
+    hiddenPassword = process.env.encryptpasssword;
 
-exports.encrypt = function(text){
-  var cipher = crypto.createCipher(algorithm,password)
-  var crypted = cipher.update(text,'utf8','hex')
-  crypted += cipher.final('hex');
-  return crypted;
+exports.encrypt = function(text) {
+  let iv = crypto.randomBytes(16);
+  let cipher = crypto.createCipheriv(algorithm, Buffer.from(hiddenPassword), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
 exports.decrypt = function(text){
-  var decipher = crypto.createDecipher(algorithm,password)
-  var dec = decipher.update(text,'hex','utf8')
-  dec += decipher.final('utf8');
-  return dec;
+  let textParts = text.split(':');
+  let iv = Buffer.from(textParts.shift(), 'hex');
+  let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+  let decipher = crypto.createDecipheriv(algorithm, Buffer.from(hiddenPassword), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted.toString();
 }
