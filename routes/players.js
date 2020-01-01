@@ -17,6 +17,35 @@ router.get('/username/:username', function(req, res) {
 });
 
 router.post('/login', function(req, res) {
+   var post = req.body;
+   var username = post.username.toLowerCase();
+   var password = post.password;
+   var query = "SELECT * FROM `player` WHERE username = '" + username + "'";
+   try { 
+       db.query(query, function(err, result) {      
+                if (result.length == 1){
+                    var dbpassword = encryption.decrypt(result[0].password);
+
+                    if (dbpassword == password) {
+                        console.log("Login succesfull for user : " + username);
+                        delete result[0].password;
+                        res.json(result[0])
+                    } else {
+                        console.log("Login error: User " + username + " login failed duo worng password");
+                        res.status(201);
+                        res.json({message: "Not Found"});
+                    }
+                }
+                else {
+                    console.log("Login error: User " + username + " not found");
+                    res.status(201);
+                    res.json({message: "Not Found"});
+                }
+       });
+   } catch(err) {
+        res.status(404);
+        res.json({message: err});
+   }
 });
 
 router.post('/signup', function(req, res) {
