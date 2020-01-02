@@ -31,9 +31,6 @@ router.get('/id/:id', function(req, res) {
     });
 });
 
-router.get('/playerid/:id', function(req, res) {
-});
-
 router.post('/create', function(req, res) {
     var post = req.body;
     var playerID = post.playerID;
@@ -90,6 +87,60 @@ router.post('/update', function(req, res) {
         res.status(404);
         res.json({message: err});
     }
+});
+
+router.get('/party/:id', function(req, res) {
+    var id = req.params.id;
+
+    //get all campaigns this player is part of.
+});
+
+router.post('/party/invite', function(req, res) {
+    var post = req.body;
+    var id = post.id;
+    var players = post.players;
+    var query = "INSERT INTO campaign_pendingplayer (player_id, campaign_id) VALUES (?)";
+    var values = [];
+
+    players.forEach(player => {
+        values.push([player, id])
+    });
+    
+    values.forEach(value => {
+        db.query(query, [value], function(err, result) {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') {
+                    console.log("Campaign ERROR: Failed to invite player with id: " + value[0] + " to campaign: " + id + ". Player already exist in campaign");
+                } else {
+                    console.log("Campaign ERROR: Failed to invite player with id: " + value[0] + " to campaign: " + id);
+                }
+            } else {
+                console.log("Campaign: player " + value[0] + " has been succesfully invited to campaign: " + id);
+            }
+        });
+    });
+    res.status(200);
+    res.json(values);
+
+    //TODO create bulk insert function
+});
+
+router.post('/party/join', function(req, res) {
+    var post = req.body;
+    var id = post.id;
+    var playerID = post.playerID;
+
+    //join campaign
+    // remove player from pending player and add to players
+});
+
+router.post('/party/leave', function(req, res) {
+    var post = req.body;
+    var id = post.id;
+    var playerID = post.playerID;
+
+    //leave campaign
+    // remove player from active campaign and pending players
 });
 
 module.exports = router;
