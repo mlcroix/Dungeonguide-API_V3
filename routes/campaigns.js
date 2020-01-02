@@ -35,6 +35,17 @@ router.get('/playerid/:id', function(req, res) {
 });
 
 router.post('/create', function(req, res) {
+    var post = req.body;
+    var playerID = post.playerID;
+    var name = post.name;
+    var campaign = [name, new Date(), playerID];
+    var query = "INSERT INTO campaign (name, date, dungeonmaster) VALUES (?)";
+    
+    db.query(query, [campaign], (err, result) => {
+        if (err) throw err;
+        console.log("Create campaign: campaign was succesfully created by user " + playerID);
+        res.json(result);
+    });
 });
 
 router.post('/remove', function(req, res) {
