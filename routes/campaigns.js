@@ -130,8 +130,31 @@ router.post('/party/join', function(req, res) {
     var id = post.id;
     var playerID = post.playerID;
 
-    //join campaign
-    // remove player from pending player and add to players
+    var query = "DELETE FROM campaign_pendingplayer WHERE player_id = '" + playerID + "' AND campaign_id = '" + id + "'";
+    try { 
+        db.query(query, function(err, result) { 
+            console.log("Campaign join: Succesfully removed User: " + playerID + " from campaign " + id + " pending players");
+            
+            var insertQuery = "INSERT INTO campaign_player (campaign_id, player_id) VALUES (?)";
+            var value = [id, playerID]
+            db.query(insertQuery, [value], function(err, result) {
+                
+                if (err && err.code === 'ER_DUP_ENTRY') {
+                    console.log("Campaign join: User: " + playerID + " is already an member of campaign " + id);
+                    res.status(200);
+                    res.json({message: "succes"});
+                } else {
+                    console.log("Campaign join: User: " + playerID + " succesfully joined campaign " + id);
+                    res.status(200);
+                    res.json({message: "succes"});
+                }
+            });
+        });   
+    } catch(err) {
+        console.log("Campaign ERROR: Failed to join campaign players of campaign: " + id);
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 router.post('/party/leave', function(req, res) {
