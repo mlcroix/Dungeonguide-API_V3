@@ -148,17 +148,17 @@ router.post('/validate', function(req, res) {
 
 router.post('/remove', function(req, res) {
     var post = req.body;
-    var username = post.username.toLowerCase();
-    var query = "DELETE FROM `player` WHERE username = '" + username + "'";
+    var id = post.id;
+    var query = "DELETE FROM `player` WHERE id = '" + id + "'";
     try { 
         db.query(query, function(err, result) { 
             if (err) throw new Error(err);
-            console.log("Remove player: Succesfully removed User: " + username);
+            console.log("Remove player: Succesfully removed User: " + id);
             res.status(200);
             res.json({message: "succes"});
         });   
     } catch(err) {
-        console.log("Remove player error: Failed to removed User: " + username);
+        console.log("Remove player error: Failed to removed User: " + id);
         res.status(404);
         res.json({message: err});
     }

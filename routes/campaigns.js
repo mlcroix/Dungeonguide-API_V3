@@ -49,6 +49,21 @@ router.post('/create', function(req, res) {
 });
 
 router.post('/remove', function(req, res) {
+    var post = req.body;
+    var id = post.id;
+    var query = "DELETE FROM `campaign` WHERE id = '" + id + "'";
+    try { 
+        db.query(query, function(err, result) { 
+            if (err) throw new Error(err);
+            console.log("Remove campaign: Succesfully removed campaign: " + id);
+            res.status(200);
+            res.json({message: "succes"});
+        });   
+    } catch(err) {
+        console.log("Remove campaign error: Failed to removed campaign: " + id);
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 router.post('/update', function(req, res) {
