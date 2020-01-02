@@ -40,7 +40,7 @@ router.post('/create', function(req, res) {
     var name = post.name;
     var campaign = [name, new Date(), playerID];
     var query = "INSERT INTO campaign (name, date, dungeonmaster) VALUES (?)";
-    
+
     db.query(query, [campaign], (err, result) => {
         if (err) throw err;
         console.log("Create campaign: campaign was succesfully created by user " + playerID);
@@ -52,6 +52,29 @@ router.post('/remove', function(req, res) {
 });
 
 router.post('/update', function(req, res) {
+    var post = req.body;
+    var id = post.id;
+    var name = post.name;
+    var dungeonMaster = post.dungeonmaster;
+    
+    var query = "UPDATE campaign SET name = ?, dungeonmaster = ? WHERE id = " + id;
+
+    var campaign = [
+        name, 
+        dungeonMaster
+    ];
+    try {
+        db.query(query, campaign, function(err, result) {
+            if (err) throw new Error(err);
+            console.log("Update campaign: Succesfully updated campaign: " + name + " with ID: " + id);
+            res.status(200);
+            res.json({message: "succes"});
+        });
+    } catch (err) {
+        console.log("Update campaign: Failed to updated campaign: " + name + " with ID: " + id);
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 module.exports = router;
