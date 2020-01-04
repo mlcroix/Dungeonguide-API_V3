@@ -5,7 +5,7 @@ var mysql = require('mysql');
 var db = require('../db');
 
 router.get('/', function(req, res, next) {
-    db.query("SELECT * FROM player", function (err, result) {
+    db.query("SELECT id, firstname, lastname, email, username FROM player", function (err, result) {
         if (err) throw err;
         console.log("Get Players");
         res.status(200);
@@ -16,7 +16,7 @@ router.get('/', function(req, res, next) {
 router.get('/username/:username', function(req, res) {
     var username = req.params.username.toLowerCase();
 
-    db.query("SELECT * FROM player WHERE username = '" + username + "'", function (err, result) {
+    db.query("SELECT id, firstname, lastname, email, username FROM player WHERE username = '" + username + "'", function (err, result) {
         if (err) throw err;
 
         if (result.length == 1) {
@@ -114,7 +114,7 @@ router.post('/validate', function(req, res) {
     var post = req.body;
     var email = post.email.toLowerCase();
     var username = post.username.toLowerCase();
-    var query = "SELECT * FROM `player` WHERE email = '" + email + "' OR username = '" + username + "'";
+    var query = "SELECT email, username FROM `player` WHERE email = '" + email + "' OR username = '" + username + "'";
     try {
         db.query(query, function(err, result) {
             if (err) throw new Error(err);
