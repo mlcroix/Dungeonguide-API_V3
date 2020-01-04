@@ -15,20 +15,42 @@ router.get('/', function(req, res, next) {
 router.get('/id/:id', function(req, res) {
     var id = req.params.id;
 
-    db.query("SELECT * FROM campaign WHERE id = '" + id + "'", function (err, result) {
+    db.query("SELECT id, name, date FROM campaign WHERE id = '" + id + "'", function (err, result) {
         if (err) throw err;
-
+    
         if (result.length == 1) {
+            result = result[0];
             console.log("Get Campaign with Id: " + id);
-            res.status(200);
-            res.json(result);
+
+            var playerQuery = "SELECT id, firstname, lastname, email, username, cp.active FROM `player` " +
+                            "inner join campaign_player as cp " +
+                            "ON cp.campaign_id = player.id " +
+                            "where cp.campaign_id = " + id;
+           
+            db.query(playerQuery, function (err, playerResult) {
+                result.players = playerResult;
+                console.log(playerResult);
+                console.log("Get Campaign players with Id: " + id);
+                var dungeonMasterQuery = "SELECT p.id, p.firstname, p.lastname, p.email, p.username FROM `player` as p " +
+                            "inner join campaign as c " +
+                            "ON c.dungeonmaster = p.id " +
+                            "where c.id = " + id;
+
+                db.query(dungeonMasterQuery, function (err, dungeonMasterResult) {
+                    result.dungeonmaster = dungeonMasterResult;
+                    console.log("Get Campaign dungeonmaster with Id: " + id);
+                    res.status(200);
+                    res.json(result);
+                });
+            });
         } else {
             console.log("Get campaign with ID: " + id + " Not Found ");
             res.status(201);
             res.json({message: "Not Found"});
         }
-        
     });
+
+    //TODO: find way to combine queries, if possible
 });
 
 router.post('/create', function(req, res) {
@@ -89,17 +111,11 @@ router.post('/update', function(req, res) {
     }
 });
 
-router.get('/party/:id', function(req, res) {
-    var id = req.params.id;
-
-    //get all campaigns this player is part of.
-});
-
 router.post('/party/invite', function(req, res) {
     var post = req.body;
     var id = post.id;
     var players = post.players;
-    var query = "INSERT INTO campaign_pendingplayer (player_id, campaign_id) VALUES (?)";
+    var query = "INSERT INTO campaign_player (player_id, campaign_id) VALUES (?)";
     var values = [];
 
     players.forEach(player => {
@@ -129,29 +145,17 @@ router.post('/party/join', function(req, res) {
     var post = req.body;
     var id = post.id;
     var playerID = post.playerID;
+    var query = "UPDATE campaign_player SET active = 1 WHERE player_id = " + playerID + " AND campaign_id = " + id;
 
-    var query = "DELETE FROM campaign_pendingplayer WHERE player_id = '" + playerID + "' AND campaign_id = '" + id + "'";
-    try { 
-        db.query(query, function(err, result) { 
-            console.log("Campaign join: Succesfully removed User: " + playerID + " from campaign " + id + " pending players");
-            
-            var insertQuery = "INSERT INTO campaign_player (campaign_id, player_id) VALUES (?)";
-            var value = [id, playerID]
-            db.query(insertQuery, [value], function(err, result) {
-                
-                if (err && err.code === 'ER_DUP_ENTRY') {
-                    console.log("Campaign join: User: " + playerID + " is already an member of campaign " + id);
-                    res.status(200);
-                    res.json({message: "succes"});
-                } else {
-                    console.log("Campaign join: User: " + playerID + " succesfully joined campaign " + id);
-                    res.status(200);
-                    res.json({message: "succes"});
-                }
-            });
-        });   
-    } catch(err) {
-        console.log("Campaign ERROR: Failed to join campaign players of campaign: " + id);
+    try {
+        db.query(query, function(err, result) {
+            if (err) throw new Error(err);
+            console.log("Campaign join: Player " + playerID + " succesfully joined campaign" + id);
+            res.status(200);
+            res.json({message: "succes"});
+        });
+    } catch (err) {
+        console.log("Campaign join: Player " + playerID + " failed to join campaign" + id );
         res.status(404);
         res.json({message: err});
     }
@@ -162,8 +166,20 @@ router.post('/party/leave', function(req, res) {
     var id = post.id;
     var playerID = post.playerID;
 
-    //leave campaign
-    // remove player from active campaign and pending players
+    var query = "DELETE FROM campaign_player WHERE player_id = '" + playerID + "' AND campaign_id = '" + id + "'";
+
+    try { 
+        db.query(query, function(err, result) { 
+            if (err) throw new Error(err);
+            console.log("Campaign leave: player " + playerID + " has Succesfully left campaign: " + id);
+            res.status(200);
+            res.json({message: "succes"});
+        });   
+    } catch(err) {
+        console.log("Campaign leave error: player " + playerID + " Failed to leave campaign: " + id);
+        res.status(404);
+        res.json({message: err});
+    }
 });
 
 module.exports = router;
