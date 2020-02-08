@@ -16,8 +16,9 @@ app.use('/', indexRouter);
 app.use('/players', playersRouter);
 app.use('/campaigns', campaignsRouter);
 
-http.listen(process.env.Port, function(){
-  console.log('listening on *:' + process.env.Port);
+const PORT = process.env.PORT || process.env.Port;
+http.listen(PORT, function(){
+  console.log('listening on *:' + PORT);
 });
 
 // Add headers
