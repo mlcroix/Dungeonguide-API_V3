@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var dotEnv = require('dotenv').config();
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 var db = require('./db');
@@ -15,8 +16,8 @@ app.use('/', indexRouter);
 app.use('/players', playersRouter);
 app.use('/campaigns', campaignsRouter);
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(process.env.Port, function(){
+  console.log('listening on *:' + process.env.Port);
 });
 
 // Add headers
