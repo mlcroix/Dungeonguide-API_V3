@@ -15,42 +15,20 @@ router.get('/', function(req, res, next) {
 router.get('/id/:id', function(req, res) {
     var id = req.params.id;
 
+    console.log("Get Campaign with Id: " + id);
     db.query("SELECT id, name, date FROM campaign WHERE id = '" + id + "'", function (err, result) {
         if (err) throw err;
     
         if (result.length == 1) {
             result = result[0];
-            console.log("Get Campaign with Id: " + id);
-
-            var playerQuery = "SELECT id, firstname, lastname, email, username, cp.active FROM `player` " +
-                            "inner join campaign_player as cp " +
-                            "ON cp.campaign_id = player.id " +
-                            "where cp.campaign_id = " + id;
-           
-            db.query(playerQuery, function (err, playerResult) {
-                result.players = playerResult;
-                console.log(playerResult);
-                console.log("Get Campaign players with Id: " + id);
-                var dungeonMasterQuery = "SELECT p.id, p.firstname, p.lastname, p.email, p.username FROM `player` as p " +
-                            "inner join campaign as c " +
-                            "ON c.dungeonmaster = p.id " +
-                            "where c.id = " + id;
-
-                db.query(dungeonMasterQuery, function (err, dungeonMasterResult) {
-                    result.dungeonmaster = dungeonMasterResult;
-                    console.log("Get Campaign dungeonmaster with Id: " + id);
-                    res.status(200);
-                    res.json(result);
-                });
-            });
+            res.status(200);
+            res.json(result);
         } else {
             console.log("Get campaign with ID: " + id + " Not Found ");
             res.status(201);
             res.json({message: "Not Found"});
         }
     });
-
-    //TODO: find way to combine queries, if possible
 });
 
 router.post('/create', function(req, res) {
@@ -137,8 +115,6 @@ router.post('/party/invite', function(req, res) {
     });
     res.status(200);
     res.json(values);
-
-    //TODO create bulk insert function
 });
 
 router.post('/party/join', function(req, res) {
@@ -180,6 +156,30 @@ router.post('/party/leave', function(req, res) {
         res.status(404);
         res.json({message: err});
     }
+});
+
+router.get('/playercampaigns/:id', function(req, res) {
+    var id = req.params.id;
+    console.log(id);
+    var query = "SELECT c.id, c.name, c.date, c.dungeonmaster, cp.active FROM campaign AS c " +
+                                "INNER JOIN campaign_player AS cp ON c.id = cp.campaign_id " +
+                                "WHERE c.Dungeonmaster = "+ id + " OR c.id IN (SELECT campaign_id FROM campaign_player WHERE player_id = " + id + ") " +
+                                "group by c.id"
+
+    console.log("Get Plasyercampaigns with playerID: " + id);
+    db.query(query, function (err, result) {
+        console.log(result);
+        if (err) throw err;
+    
+        if (result.length > 0) {
+            res.status(200);
+            res.json(result);
+        } else {
+            console.log("No campaigns found with playerId: " + id);
+            res.status(201);
+            res.json({message: "Not Found"});
+        }
+    });
 });
 
 module.exports = router;
