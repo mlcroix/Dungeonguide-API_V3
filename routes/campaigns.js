@@ -160,15 +160,13 @@ router.post('/party/leave', function(req, res) {
 
 router.get('/playercampaigns/:id', function(req, res) {
     var id = req.params.id;
-    console.log(id);
     var query = "SELECT c.id, c.name, c.date, c.dungeonmaster, cp.active FROM campaign AS c " +
                                 "INNER JOIN campaign_player AS cp ON c.id = cp.campaign_id " +
                                 "WHERE c.Dungeonmaster = "+ id + " OR c.id IN (SELECT campaign_id FROM campaign_player WHERE player_id = " + id + ") " +
                                 "group by c.id"
 
-    console.log("Get Plasyercampaigns with playerID: " + id);
+    console.log("Get Player campaigns with playerID: " + id);
     db.query(query, function (err, result) {
-        console.log(result);
         if (err) throw err;
     
         if (result.length > 0) {
@@ -176,6 +174,28 @@ router.get('/playercampaigns/:id', function(req, res) {
             res.json(result);
         } else {
             console.log("No campaigns found with playerId: " + id);
+            res.status(201);
+            res.json({message: "Not Found"});
+        }
+    });
+});
+
+router.get('/party/:id', function(req, res) {
+    var id = req.params.id;
+    var query = "SELECT p.id, p.email, p.firstname, p.lastname, p.username, cp.active FROM player As p " +
+                                                "INNER JOIN campaign_player AS cp ON p.id = cp.player_id " +
+                                                "WHERE p.id IN (SELECT player_id FROM campaign_player WHERE campaign_id = " + id + ") " +
+                                                "group by p.id"
+    
+    console.log("Get players in campaign: " + id);
+    db.query(query, function (err, result) {
+        if (err) throw err;
+    
+        if (result.length > 0) {
+            res.status(200);
+            res.json(result);
+        } else {
+            console.log("No players found in campaign: " + id);
             res.status(201);
             res.json({message: "Not Found"});
         }

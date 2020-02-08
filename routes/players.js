@@ -190,8 +190,6 @@ router.post('/update', function(req, res) {
         res.status(404);
         res.json({message: err});
     }
-    
-
 });
 
 module.exports = router;
