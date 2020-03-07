@@ -12,15 +12,6 @@ var indexRouter = require('./routes/index');
 var playersRouter = require('./routes/players');
 var campaignsRouter = require('./routes/campaigns');
 
-app.use('/', indexRouter);
-app.use('/players', playersRouter);
-app.use('/campaigns', campaignsRouter);
-
-const PORT = process.env.PORT || process.env.Port;
-http.listen(PORT, function(){
-  console.log('listening on *:' + PORT);
-});
-
 // Add headers
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -35,3 +26,14 @@ app.use(function (req, res, next) {
   // Pass to next layer of middleware
   next();
 });
+
+app.use('/', indexRouter);
+app.use('/players', playersRouter);
+app.use('/campaigns', campaignsRouter);
+
+const PORT = process.env.PORT || process.env.Port;
+http.listen(PORT, function(){
+  console.log('listening on *:' + PORT);
+});
+
+
